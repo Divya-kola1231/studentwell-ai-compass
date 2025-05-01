@@ -1,11 +1,11 @@
 
 import { PageLayout } from "@/components/layout/PageLayout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Bell, Coffee, CreditCard, DollarSign, FastForward, Gift, Landmark, ShoppingBag } from "lucide-react"
+import { Coffee, CreditCard, DollarSign, Landmark } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { BudgetOverview } from "@/components/financial/BudgetOverview"
 
 export default function Financial() {
   return (
@@ -19,66 +19,7 @@ export default function Financial() {
         </div>
         
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader className="bg-studentwell-green-500 text-white rounded-t-lg">
-              <CardTitle className="text-lg font-semibold">Monthly Budget</CardTitle>
-              <CardDescription className="text-green-100">
-                April 2025
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium">Budget Overview</h3>
-                <button className="text-xs font-medium text-primary">Edit Budget</button>
-              </div>
-              
-              <div className="space-y-3">
-                <BudgetCategory
-                  category="Housing"
-                  spent={650}
-                  total={650}
-                  icon={<Landmark className="h-5 w-5 text-studentwell-blue-500" />}
-                />
-                
-                <BudgetCategory
-                  category="Groceries"
-                  spent={180}
-                  total={250}
-                  icon={<ShoppingBag className="h-5 w-5 text-studentwell-green-500" />}
-                />
-                
-                <BudgetCategory
-                  category="Entertainment"
-                  spent={85}
-                  total={100}
-                  icon={<Gift className="h-5 w-5 text-studentwell-orange-500" />}
-                />
-                
-                <BudgetCategory
-                  category="Coffee & Eating Out"
-                  spent={120}
-                  total={75}
-                  overBudget
-                  icon={<Coffee className="h-5 w-5 text-studentwell-teal-500" />}
-                />
-                
-                <BudgetCategory
-                  category="Subscriptions"
-                  spent={25}
-                  total={40}
-                  icon={<FastForward className="h-5 w-5 text-studentwell-blue-500" />}
-                />
-              </div>
-              
-              <Alert className="bg-studentwell-orange-100 border-studentwell-orange-500">
-                <Bell className="h-4 w-4 text-studentwell-orange-500" />
-                <AlertTitle className="text-studentwell-orange-600">Budget Alert</AlertTitle>
-                <AlertDescription className="text-studentwell-orange-600">
-                  You've spent 160% of your eating out budget this month.
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
+          <BudgetOverview />
           
           <Card>
             <CardHeader className="bg-studentwell-blue-500 text-white rounded-t-lg">
@@ -175,46 +116,33 @@ export default function Financial() {
   )
 }
 
-interface BudgetCategoryProps {
-  category: string
-  spent: number
-  total: number
-  icon: React.ReactNode
-  overBudget?: boolean
-}
-
-function BudgetCategory({ category, spent, total, icon, overBudget }: BudgetCategoryProps) {
-  const progress = Math.min(Math.round((spent / total) * 100), 100)
-  
+function ShoppingBag(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          {icon}
-          <span className="text-sm font-medium">{category}</span>
-        </div>
-        <div className={`text-sm ${overBudget ? 'text-red-500 font-medium' : ''}`}>
-          ${spent} / ${total}
-        </div>
-      </div>
-      {overBudget ? (
-        <Progress 
-          value={progress} 
-          className="bg-red-100"
-        />
-      ) : (
-        <Progress value={progress} />
-      )}
-    </div>
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+      <path d="M3 6h18"/>
+      <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
   )
 }
 
 interface FinancialCourseCardProps {
-  title: string
-  description: string
-  progress: number
-  lessons: number
-  icon: React.ReactNode
+  title: string;
+  description: string;
+  progress: number;
+  lessons: number;
+  icon: React.ReactNode;
 }
 
 function FinancialCourseCard({ title, description, progress, lessons, icon }: FinancialCourseCardProps) {
@@ -242,5 +170,8 @@ function FinancialCourseCard({ title, description, progress, lessons, icon }: Fi
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
+
+// Re-export Progress from ui components
+import { Progress } from "@/components/ui/progress";

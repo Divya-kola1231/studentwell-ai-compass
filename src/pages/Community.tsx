@@ -1,4 +1,5 @@
 
+import { useState } from "react"
 import { PageLayout } from "@/components/layout/PageLayout"
 import { ForumPreview } from "@/components/community/ForumPreview"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,8 +9,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MessageSquare, Search, User, Users } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { MyActivityModal } from "@/components/community/MyActivityModal"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function Community() {
+  const [isMyActivityOpen, setIsMyActivityOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      toast({
+        title: "Search performed",
+        description: `Showing results for "${searchQuery}"`
+      });
+    }
+  };
+  
+  const handleNewTopic = () => {
+    toast({
+      title: "Creating new topic",
+      description: "Opening the new topic form"
+    });
+    // In a real app, this would open a form modal
+  };
+  
   return (
     <PageLayout>
       <div className="space-y-6">
@@ -22,17 +47,29 @@ export default function Community() {
         
         <div className="flex justify-between items-center">
           <div className="flex gap-2">
-            <Button className="bg-studentwell-orange-500 hover:bg-studentwell-orange-600">New Topic</Button>
-            <Button variant="outline">My Activity</Button>
+            <Button 
+              className="bg-studentwell-orange-500 hover:bg-studentwell-orange-600"
+              onClick={handleNewTopic}
+            >
+              New Topic
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setIsMyActivityOpen(true)}
+            >
+              My Activity
+            </Button>
           </div>
-          <div className="relative">
+          <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search discussions..."
               className="w-full md:w-[300px] pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </div>
+          </form>
         </div>
         
         <Tabs defaultValue="popular">
@@ -52,8 +89,49 @@ export default function Community() {
           </TabsContent>
           
           <TabsContent value="recent" className="mt-4">
-            <div className="bg-muted/50 p-6 rounded-lg text-center">
-              <p className="text-muted-foreground">Recent topics will appear here</p>
+            <div className="space-y-4">
+              <TopicCard 
+                topic={{
+                  id: "4",
+                  title: "Recommended resources for learning web development",
+                  author: {
+                    name: "Taylor Morris",
+                  },
+                  category: "Tech & Tools",
+                  replies: 8,
+                  views: 112,
+                  lastActive: "15 minutes ago",
+                  tags: ["web development", "resources", "learning"]
+                }}
+              />
+              <TopicCard 
+                topic={{
+                  id: "5",
+                  title: "When is the best time to apply for summer internships?",
+                  author: {
+                    name: "Jordan Lin",
+                  },
+                  category: "Career Planning",
+                  replies: 12,
+                  views: 143,
+                  lastActive: "45 minutes ago",
+                  tags: ["internships", "career", "planning"]
+                }}
+              />
+              <TopicCard 
+                topic={{
+                  id: "6",
+                  title: "Roommate conflict resolution strategies?",
+                  author: {
+                    name: "Sydney Khan",
+                  },
+                  category: "Campus Life",
+                  replies: 19,
+                  views: 205,
+                  lastActive: "2 hours ago",
+                  tags: ["roommates", "conflict", "housing"]
+                }}
+              />
             </div>
           </TabsContent>
           
@@ -123,6 +201,8 @@ export default function Community() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <MyActivityModal open={isMyActivityOpen} onClose={() => setIsMyActivityOpen(false)} />
     </PageLayout>
   )
 }

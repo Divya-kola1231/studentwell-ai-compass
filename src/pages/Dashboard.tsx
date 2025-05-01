@@ -3,6 +3,7 @@ import { Brain, Coins, GraduationCap, Users } from "lucide-react"
 import { PageLayout } from "@/components/layout/PageLayout"
 import { WelcomeMessage } from "@/components/dashboard/WelcomeMessage"
 import { DashboardCard } from "@/components/dashboard/DashboardCard"
+import { RecentActivity } from "@/components/dashboard/RecentActivity"
 
 export default function Dashboard() {
   return (
@@ -47,13 +48,7 @@ export default function Dashboard() {
         </div>
         
         <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
-          <div className="bg-muted/50 p-6 rounded-lg text-center">
-            <p className="text-muted-foreground">Your recent activity will appear here as you use the platform</p>
-            <button className="mt-3 text-sm font-medium text-primary">
-              Explore the platform to get started
-            </button>
-          </div>
+          <RecentActivity />
         </div>
       </div>
     </PageLayout>
