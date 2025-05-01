@@ -163,6 +163,34 @@ function ActivityCard({ activity }: ActivityCardProps) {
   const { user } = useAuth();
   const username = user?.email?.split('@')[0] || "User";
   
+  // Moving these functions inside the component to ensure they're available
+  function getActivityIcon(type: ActivityItem["type"]) {
+    switch (type) {
+      case "topic":
+        return <MessageSquare className="h-4 w-4" />;
+      case "reply":
+        return <MessageCircle className="h-4 w-4" />;
+      case "like":
+        return <Heart className="h-4 w-4" />;
+      default:
+        return <MessageSquare className="h-4 w-4" />;
+    }
+  }
+  
+  function formatDate(date: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.round(diffMs / (1000 * 60));
+    const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hr ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString();
+  }
+  
   return (
     <Card className="hover:shadow-sm transition-colors">
       <CardContent className="p-4">

@@ -12,7 +12,9 @@ import Community from "./pages/Community";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AuthRoute from "./components/auth/AuthRoute";
+import React from "react"; // Add this import
 
+// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 const App = () => (
