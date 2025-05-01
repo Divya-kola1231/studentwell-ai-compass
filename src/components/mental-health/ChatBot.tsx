@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/components/ui/use-toast"
 
 interface Message {
   id: string
@@ -15,6 +17,7 @@ interface Message {
 }
 
 export function ChatBot() {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -22,11 +25,12 @@ export function ChatBot() {
       sender: "bot",
       timestamp: new Date(),
     },
-  ])
-  const [input, setInput] = useState("")
+  ]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendMessage = () => {
-    if (!input.trim()) return
+  const handleSendMessage = async () => {
+    if (!input.trim() || isLoading) return;
 
     // Add user message
     const userMessage: Message = {
@@ -34,39 +38,56 @@ export function ChatBot() {
       content: input,
       sender: "user",
       timestamp: new Date(),
-    }
+    };
     
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botResponses = [
-        "I understand how you're feeling. Would you like to talk more about that?",
-        "That sounds challenging. What specifically is troubling you the most?",
-        "I hear you. Have you tried any coping strategies that have worked for you in the past?",
-        "It's okay to feel that way. What would help you feel better right now?",
-        "Thank you for sharing. What support would be most helpful for you today?"
-      ]
-      
-      const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)]
-      
+    try {
+      // Call Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke("mental-health-chat", {
+        body: { message: input },
+      });
+
+      if (error) throw error;
+
+      // Add bot response
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: randomResponse,
+        content: data.response,
         sender: "bot",
         timestamp: new Date(),
-      }
+      };
       
-      setMessages((prev) => [...prev, botMessage])
-    }, 1000)
-  }
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error fetching response:", error);
+      toast({
+        title: "Error",
+        description: "Could not connect to the AI assistant. Please try again later.",
+        variant: "destructive",
+      });
+      
+      // Add fallback bot message on error
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm having trouble connecting right now. Please try again in a moment.",
+        sender: "bot",
+        timestamp: new Date(),
+      };
+      
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      handleSendMessage()
+      handleSendMessage();
     }
-  }
+  };
 
   return (
     <Card className="h-[600px] flex flex-col">
@@ -108,6 +129,22 @@ export function ChatBot() {
             </div>
           </div>
         ))}
+        
+        {/* Loading indicator */}
+        {isLoading && (
+          <div className="flex items-start gap-2 text-sm">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-studentwell-teal-500 text-white">AI</AvatarFallback>
+            </Avatar>
+            <div className="bg-muted rounded-lg px-3 py-2">
+              <div className="flex space-x-1">
+                <div className="h-2 w-2 bg-studentwell-teal-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="h-2 w-2 bg-studentwell-teal-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="h-2 w-2 bg-studentwell-teal-500 rounded-full animate-bounce"></div>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="border-t p-3">
         <div className="flex w-full items-center gap-2">
@@ -117,8 +154,9 @@ export function ChatBot() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             className="flex-1"
+            disabled={isLoading}
           />
-          <Button size="icon" onClick={handleSendMessage}>
+          <Button size="icon" onClick={handleSendMessage} disabled={isLoading}>
             <Send className="h-4 w-4" />
             <span className="sr-only">Send</span>
           </Button>
