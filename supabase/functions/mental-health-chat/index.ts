@@ -18,6 +18,12 @@ serve(async (req) => {
   try {
     const { message } = await req.json();
 
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key is not configured');
+    }
+
+    console.log('Sending request to OpenAI API with message:', message);
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -43,6 +49,13 @@ serve(async (req) => {
     });
 
     const data = await response.json();
+    console.log('OpenAI API response:', JSON.stringify(data));
+
+    // Check if the response structure is as expected
+    if (!data.choices || !data.choices.length) {
+      throw new Error('Unexpected response format from OpenAI API: ' + JSON.stringify(data));
+    }
+
     const aiResponse = data.choices[0].message.content;
 
     return new Response(JSON.stringify({ response: aiResponse }), {
@@ -50,7 +63,10 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in mental-health-chat function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      details: 'There was an error connecting to the AI personal assistant. Please try again later.'
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

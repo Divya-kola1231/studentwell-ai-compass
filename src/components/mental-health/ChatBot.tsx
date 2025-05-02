@@ -28,10 +28,13 @@ export function ChatBot() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionError, setConnectionError] = useState(false);
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
+    setConnectionError(false);
+    
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -51,6 +54,10 @@ export function ChatBot() {
       });
 
       if (error) throw error;
+      
+      if (data.error) {
+        throw new Error(data.details || data.error);
+      }
 
       // Add bot response
       const botMessage: Message = {
@@ -63,8 +70,10 @@ export function ChatBot() {
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error("Error fetching response:", error);
+      setConnectionError(true);
+      
       toast({
-        title: "Error",
+        title: "Connection Error",
         description: "Could not connect to the AI assistant. Please try again later.",
         variant: "destructive",
       });
@@ -143,6 +152,13 @@ export function ChatBot() {
                 <div className="h-2 w-2 bg-studentwell-teal-500 rounded-full animate-bounce"></div>
               </div>
             </div>
+          </div>
+        )}
+        
+        {connectionError && (
+          <div className="p-3 bg-red-50 text-red-800 rounded-md text-sm mt-4">
+            <p className="font-medium">Connection issue</p>
+            <p>There was a problem connecting to the AI assistant. Please try again later.</p>
           </div>
         )}
       </CardContent>
