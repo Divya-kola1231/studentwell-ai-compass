@@ -18,9 +18,15 @@ serve(async (req) => {
   try {
     const { message } = await req.json();
 
-    if (!openAIApiKey) {
-      console.error('OpenAI API key is missing');
-      throw new Error('OpenAI API key is not configured. Please add it to your Supabase secrets.');
+    if (!openAIApiKey || openAIApiKey.trim() === '') {
+      console.error('OpenAI API key is missing or empty');
+      throw new Error('OpenAI API key is not properly configured. Please add a valid key to your Supabase secrets.');
+    }
+
+    // Basic validation of API key format (should start with "sk-")
+    if (!openAIApiKey.startsWith('sk-')) {
+      console.error('OpenAI API key appears malformed (should start with "sk-")');
+      throw new Error('OpenAI API key appears to be invalid. Please check the format and update your Supabase secrets.');
     }
 
     console.log('Sending request to OpenAI API with message:', message);
@@ -53,11 +59,19 @@ serve(async (req) => {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('OpenAI API error:', JSON.stringify(errorData));
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      
+      // Provide specific error messages based on common error types
+      if (errorData.error?.code === 'invalid_api_key') {
+        throw new Error('The OpenAI API key appears to be invalid. Please update it in your Supabase secrets.');
+      } else if (errorData.error?.type === 'insufficient_quota') {
+        throw new Error('Your OpenAI account has insufficient quota. Please check your usage and limits.');
+      } else {
+        throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      }
     }
 
     const data = await response.json();
-    console.log('OpenAI API response received');
+    console.log('OpenAI API response received successfully');
 
     // Check if the response structure is as expected
     if (!data.choices || !data.choices.length) {
