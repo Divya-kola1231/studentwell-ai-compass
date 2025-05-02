@@ -19,7 +19,8 @@ serve(async (req) => {
     const { message } = await req.json();
 
     if (!openAIApiKey) {
-      throw new Error('OpenAI API key is not configured');
+      console.error('OpenAI API key is missing');
+      throw new Error('OpenAI API key is not configured. Please add it to your Supabase secrets.');
     }
 
     console.log('Sending request to OpenAI API with message:', message);
@@ -48,12 +49,20 @@ serve(async (req) => {
       }),
     });
 
+    // Check for non-200 response from OpenAI
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API error:', JSON.stringify(errorData));
+      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+
     const data = await response.json();
-    console.log('OpenAI API response:', JSON.stringify(data));
+    console.log('OpenAI API response received');
 
     // Check if the response structure is as expected
     if (!data.choices || !data.choices.length) {
-      throw new Error('Unexpected response format from OpenAI API: ' + JSON.stringify(data));
+      console.error('Unexpected response format:', JSON.stringify(data));
+      throw new Error('Unexpected response format from OpenAI API');
     }
 
     const aiResponse = data.choices[0].message.content;

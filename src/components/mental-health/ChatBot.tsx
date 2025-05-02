@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import { AlertTriangle } from "lucide-react"
 
 interface Message {
   id: string
@@ -29,11 +31,13 @@ export function ChatBot() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [connectionError, setConnectionError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
     setConnectionError(false);
+    setErrorMessage("");
     
     // Add user message
     const userMessage: Message = {
@@ -53,9 +57,13 @@ export function ChatBot() {
         body: { message: input },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Function error:", error);
+        throw new Error(error.message || "Error calling AI assistant");
+      }
       
       if (data.error) {
+        console.error("Response error:", data.error);
         throw new Error(data.details || data.error);
       }
 
@@ -71,6 +79,7 @@ export function ChatBot() {
     } catch (error) {
       console.error("Error fetching response:", error);
       setConnectionError(true);
+      setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
       
       toast({
         title: "Connection Error",
@@ -156,10 +165,13 @@ export function ChatBot() {
         )}
         
         {connectionError && (
-          <div className="p-3 bg-red-50 text-red-800 rounded-md text-sm mt-4">
-            <p className="font-medium">Connection issue</p>
-            <p>There was a problem connecting to the AI assistant. Please try again later.</p>
-          </div>
+          <Alert variant="destructive" className="mt-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Connection issue</AlertTitle>
+            <AlertDescription>
+              {errorMessage || "There was a problem connecting to the AI assistant. Please try again later."}
+            </AlertDescription>
+          </Alert>
         )}
       </CardContent>
       <CardFooter className="border-t p-3">
